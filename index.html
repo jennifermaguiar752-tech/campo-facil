@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e9e2ff">
+<title>Campo fácil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9e2ff;--ink:#12004b;--acc:#1f00ab;--mut:#a99ae0;--ph:#6f63a8;--rail:#f9f7ff;--w:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter Tight",system-ui,sans-serif;font-weight:400;padding-bottom:76px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--ink);padding:12px 16px}
+h1{margin:0 0 10px;font-size:22px;font-weight:600;letter-spacing:-.02em}
+h2{margin:26px 0 10px;font-size:22px;font-weight:600;letter-spacing:-.02em}
+h3{margin:20px 0 8px;font-size:13px;font-weight:500;color:var(--acc)}
+input{width:100%;font:400 14px "Inter Tight",system-ui,sans-serif;color:var(--ink);background:var(--w);border:1px solid var(--ink);border-radius:4px;padding:10px 12px;outline:none}
+input::placeholder{color:var(--ph)}
+input:focus{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.opt{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:500}
+.opt button{padding:5px 10px;font-size:13px;background:var(--w);color:var(--ink);border:1px solid var(--ink)}
+.opt button.on{background:var(--ink);color:var(--w)}
+main{padding:4px 16px 16px}
+.box{background:var(--w);border:1px solid var(--ink);border-radius:4px;margin-bottom:8px;overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:18px;font-weight:500}
+details[open]>summary{background:var(--ink);color:var(--w)}
+details[open]>summary::after{content:"−"}
+details[open]>summary .src{color:var(--mut)}
+.t{display:block;font-size:18px;font-weight:500}
+.src{display:block;font-size:12px;color:var(--acc);margin-top:3px}
+.slab{background:var(--ink);color:var(--w);padding:14px 16px}
+.slab .src{color:var(--mut)}
+.row{border-top:1px solid var(--ink);padding:12px 16px}
+.lb{font-size:13px;font-weight:500;margin-bottom:4px}
+.an{font-size:18px;font-weight:500;line-height:1.35}
+.pt{font-size:16px;line-height:1.45}
+.help{font-size:13px;color:var(--acc);line-height:1.4}
+.visita{background:var(--rail)}
+a.ref,a.lnk{color:var(--acc);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--ink);padding:12px 16px}
+button,.btn{font:500 14px "Inter Tight",system-ui,sans-serif;border-radius:4px;padding:9px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+.b1{background:var(--acc);color:var(--w);border:1px solid var(--acc)}
+.b2{background:var(--w);color:var(--ink);border:1px solid var(--ink)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg{display:flex;gap:6px;overflow-x:auto;padding:14px 0 4px}
+.seg button{white-space:nowrap;background:var(--w);color:var(--ink);border:1px solid var(--ink)}
+.seg button.on{background:var(--ink);color:var(--w)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;gap:6px;padding:8px;background:var(--rail);border-top:1px solid var(--ink)}
+nav button{flex:1;background:var(--rail);color:var(--ink);border:1px solid var(--ink);padding:11px 4px}
+nav button.on{background:var(--ink);color:var(--w)}
+.panel{background:var(--rail);border:1px solid var(--ink);border-radius:4px;padding:14px 16px;font-size:15px;line-height:1.5}
+.panel p{margin:0 0 8px}
+label{display:block;font-size:13px;font-weight:500;margin:12px 0 4px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--w);border-radius:4px;padding:8px 14px;font-size:13px;display:none;z-index:9}
+.empty{font-size:15px;color:var(--ph);padding:10px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Campo fácil</h1>
+  <input id="busca" type="search" placeholder="Buscar assunto, texto ou objeção">
+  <div class="opt"><span>Abrir textos no</span><button data-ab="app">JW Library</button><button data-ab="web">Navegador</button></div>
+</header>
+<main id="app"></main>
+<nav>
+  <button data-tab="ap" class="on">Apresentações</button>
+  <button data-tab="tx">Textos e respostas</button>
+  <button data-tab="fav">Favoritos</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= VÍDEOS ================= */
+const VB="https://www.jw.org/pt/biblioteca/videos/#pt/mediaitems/";
+const VID={
+ planeta:{t:"Nosso planeta vai sobreviver!",u:VB+"LatestVideos/pub-ebtv_14_VIDEO"},
+ universo:{t:"Como surgiu o Universo?",u:VB+"VODMinistryTeachings/pub-ebtv_1_VIDEO"},
+ estudo:{t:"Como é um estudo bíblico?",u:VB+"VODMinistryTools/pub-whbs_1_VIDEO"},
+ celebracao:{t:"Lembre-se da morte de Jesus",u:VB+"VODMinistryTools/docid-502016800_1_VIDEO"},
+ estudar:{t:"Por que estudar a Bíblia?",u:VB+"VODMinistryTools/pub-wsb_2_VIDEO"},
+ morte:{t:"Será que a morte é o fim de tudo?",u:VB+"VODMinistryTools/pub-imv_4_VIDEO"},
+ natal:{t:"Qual é a origem do Natal?",u:VB+"VODMinistryTeachings/pub-ebtv_12_VIDEO"},
+ religioes:{t:"Será que Deus aceita todas as religiões?",u:VB+"VODMinistryTeachings/docid-502018853_1_VIDEO"},
+ sofrimento:{t:"Por que existe tanto sofrimento?",u:VB+"VODMinistryTeachings/docid-502018850_1_VIDEO"},
+ reino:{t:"O que é o Reino de Deus?",u:VB+"VODMinistryTeachings/docid-502017850_1_VIDEO"},
+ jesusDeus:{t:"Será que Jesus é Deus?",u:VB+"VODMinistryTeachings/pub-ebtv_2_VIDEO"}
+};
+
+/* ================= APRESENTAÇÕES ================= */
+const CATS=[["deus","Deus e a Bíblia"],["futuro","Futuro e promessas"],["sofr","Sofrimento, morte e consolo"],["vida","Família e dia a dia"],["jesus","Jesus e a Celebração"],["rev","Revisitas e estudo"]];
+const PRES=[
+// ---- Deus e a Bíblia
+{id:"biblia",cat:"deus",tema:"Onde encontrar bons conselhos?",fonte:"Vídeos de primeira conversa e revisita (2021–2022)",v:["estudar"],
+ abertura:"Olá! Estamos conversando com as pessoas sobre onde encontrar bons conselhos para a vida.",
+ pergunta:"Na sua opinião, onde podemos encontrar bons conselhos?",
+ texto:"2 Timóteo 3:16, 17",perguntaTexto:"Como “toda a Escritura” pode nos ajudar? E com ela ficamos equipados para quê?",
+ revisita:"Por que podemos confiar na Bíblia?",
+ visitas:[{t:"Jó 26:7",p:"O que acha de a Bíblia dizer, há tanto tempo, que a Terra está “suspensa sobre o nada”? Se podemos confiar nela na ciência, em que outros assuntos também podemos?",prox:"Que perguntas a Bíblia responde? (lição 1 da publicação de estudo)"}],
+ notas:["Outra forma de começar: “Uns acham que a Bíblia é um livro de lendas; outros, a palavra de Deus. E você?” Leia Romanos 15:4. “Percebeu as quatro formas como a Bíblia pode nos ajudar? De qual mais precisamos agora?”"]},
+{id:"nome",cat:"deus",tema:"O nome de Deus e a amizade com ele",fonte:"Vídeos de primeira conversa e revisitas (01/2019 e 01/2020)",
+ abertura:"Boa tarde! Estamos falando sobre o que fazer para nos sentir mais perto de Deus. Para fazer amizade com alguém, primeiro precisamos saber o nome da pessoa.",
+ pergunta:"E Deus? Ele tem nome? O que você acha?",
+ texto:"Salmo 83:18",perguntaTexto:"De acordo com a Bíblia, qual é o nome de Deus? Você já tinha visto isso na Bíblia?",
+ revisita:"A Bíblia diz que Deus tem muitas qualidades. Qual delas é a principal?",
+ visitas:[
+  {t:"1 João 4:8",p:"Que outra qualidade Deus tem? Repare: o texto não diz que Deus tem amor, mas que ele é amor. Então, qual é a principal qualidade dele?",prox:"Como podemos ser amigos de Deus?"},
+  {t:"Tiago 4:8",p:"Se nos esforçarmos para ser amigos de Deus, o que ele vai fazer?",prox:"O que precisamos fazer para ser amigos de Deus? (João 17:3)"}],
+ notas:["Não esqueça de dizer seu nome e de perguntar o nome da pessoa."]},
+{id:"ciencia",cat:"deus",tema:"A Bíblia e a ciência",fonte:"Das suas anotações (Ciência e a Bíblia)",v:["universo"],
+ abertura:"Olá! Muita gente acha que a Bíblia é contra a ciência. Posso mostrar uma coisa curiosa em menos de um minuto?",
+ pergunta:"O que acha: um livro antigo poderia ter informações científicas corretas?",
+ texto:"Jó 26:7",perguntaTexto:"Esse texto foi escrito há mais de 3.000 anos. Como o escritor sabia que a Terra está suspensa “sobre o nada”?",
+ revisita:"Que outros detalhes mostram que a Bíblia vem de Deus? (Isaías 40:22; Jó 36:27, 28)"},
+{id:"deus",cat:"deus",tema:"Deus existe?",fonte:"Modelo do app",v:["universo"],
+ abertura:"Olá! Algumas pessoas confiam em Deus, outras acham difícil acreditar nele.",
+ pergunta:"No seu caso, o que acha? Dá para ter certeza de que Deus existe?",
+ texto:"Romanos 1:20",perguntaTexto:"Que coisas da natureza mostram para você que existe um Criador?",
+ revisita:"Deus tem um nome? (Salmo 83:18)"},
+{id:"oracao",cat:"deus",tema:"Oração",fonte:"Vídeo de revisita (2021 e 2023)",
+ abertura:"Olá! Muita gente ora, mas às vezes fica em dúvida se Deus está ouvindo.",
+ pergunta:"Acha que Deus ouve todas as orações?",
+ texto:"Salmo 65:2",perguntaTexto:"Como esse texto chama Deus? O que isso nos ensina?",
+ revisita:"Pelo que podemos orar?",
+ visitas:[{t:"1 João 5:14",p:"Se você pedisse um milhão de reais, será que Deus daria? E será que podemos pedir ajuda para fazer o que é certo?",prox:"Como Deus responde às nossas orações?"}]},
+{id:"religiao",cat:"deus",tema:"Deus aceita todas as religiões?",fonte:"Das suas anotações (religião verdadeira)",v:["religioes"],
+ abertura:"Olá! Existem tantas religiões que muita gente fica confusa.",
+ pergunta:"Você acha que basta acreditar em Deus, ou importa a maneira como o adoramos?",
+ texto:"Tiago 2:19",perguntaTexto:"Como esse texto mostra que temos de fazer mais do que só acreditar em Deus?",
+ revisita:"Como identificar a religião verdadeira?",
+ visitas:[
+  {t:"Salmo 83:18; Mateus 20:28; 2 Timóteo 3:16, 17",p:"O que os verdadeiros cristãos pensam sobre Deus, Jesus e a Bíblia?",prox:"O que quem está na religião verdadeira faz no dia a dia?"},
+  {t:"Mateus 24:14; Marcos 12:17; João 13:35",p:"Que coisas a pessoa que está na religião verdadeira deve fazer no dia a dia?",prox:"O que Deus pede em relação à adoração falsa?"},
+  {t:"2 Coríntios 6:17; 2 Pedro 3:9, 13",p:"Para ser “acolhido” por Deus, o que devemos fazer em relação à adoração falsa? Por que é importante adorar do jeito certo?"}],
+ notas:["Ilustração: quem conhece bem o dinheiro verdadeiro identifica na hora o falso. Da mesma forma, quem conhece as características da religião verdadeira identifica a falsa.","A maioria ainda não encontrou a religião verdadeira, e isso não deve nos surpreender: Jesus disse que poucos encontram o caminho (Mateus 7:13, 14).","Quem faz parte da religião verdadeira mostra isso pelas crenças e pelo jeito de viver."]},
+// ---- Futuro e promessas
+{id:"futuro",cat:"futuro",tema:"Dá para saber o futuro?",fonte:"Vídeo de primeira conversa e revisita (05/2018)",
+ abertura:"Bom dia! Todos nós queremos saber o que vai acontecer no nosso futuro e no da nossa família.",
+ pergunta:"Será que dá para saber? O que acha?",
+ texto:"Isaías 46:10",perguntaTexto:"De acordo com o texto, o que Deus anuncia?",
+ revisita:"Se Deus pode dizer como será o futuro, o que ele promete para os humanos e para a Terra?",
+ visitas:[
+  {t:"Salmo 37:29",p:"Quem vai possuir a Terra, e por quanto tempo?",prox:"O que precisamos fazer para viver para sempre?"},
+  {t:"Salmo 37:34",p:"O versículo diz que precisamos fazer algumas coisas. Quais são? (Esperar em Jeová e seguir o caminho dele.)",prox:"Que caminho Deus quer que cada um de nós siga?"}],
+ notas:["Dica do vídeo: antes de sair, pense em que pergunta deixar para preparar a revisita."]},
+{id:"futuro2",cat:"futuro",tema:"Um futuro sem dor",fonte:"Vídeo de revisitas (06/2019)",
+ abertura:"Olá! Estamos levando aos vizinhos uma visão positiva do futuro.",
+ pergunta:"Com tudo o que acontece, você consegue ser otimista em relação ao futuro?",
+ texto:"Apocalipse 21:3, 4",perguntaTexto:"O que vai acontecer no futuro, de acordo com esse texto? Que parte você mais gostou?",
+ revisita:"O que precisamos fazer para receber as coisas boas que Deus prometeu?",
+ visitas:[{t:"João 3:16",p:"Quem vai receber as coisas boas que Deus prometeu, incluindo viver para sempre?",prox:"O que significa exercer fé? Basta acreditar que Jesus existiu?"}]},
+{id:"reino",cat:"futuro",tema:"O Reino de Deus",fonte:"Vídeo de primeira conversa e revisita (04/2017)",v:["reino"],
+ abertura:"Bom dia! Vi que tem brinquedos no quintal. Você tem filhos? (Adapte ao que você observar.)",
+ pergunta:"Como você acha que vai ser o futuro dos nossos filhos?",
+ texto:"Mateus 6:9, 10",perguntaTexto:"Como a Terra vai ser quando a vontade de Deus for feita aqui? De todos os problemas do mundo, qual você gostaria que acabasse?",
+ revisita:"Como vai ser a vida quando o Reino de Deus governar a Terra?",
+ visitas:[{t:"Isaías 65:21-23",p:"Que coisas boas o Reino de Deus vai fazer por nós? Qual delas você não vê a hora de acontecer?",prox:"Quem vão ser os governantes desse Reino?"}],
+ notas:["Outra forma de começar: “Muita gente gostaria de um governo que acabasse de verdade com a corrupção. Acha que existe um governo assim?” Leia Daniel 2:44."]},
+{id:"proposito",cat:"futuro",tema:"O que Deus quer para os humanos?",fonte:"Vídeos de primeira conversa e revisitas (03/2019 e 04/2020)",v:["planeta"],
+ abertura:"Olá! Meu nome é ___. Estamos perguntando a opinião das pessoas sobre o que Deus quer para os humanos.",
+ pergunta:"O que você acha?",
+ texto:"Gênesis 1:28",perguntaTexto:"O que Deus queria que Adão e Eva fizessem?",
+ revisita:"Hoje a Terra não é um paraíso. Será que Deus falhou, ou ele ainda vai cumprir sua promessa?",
+ visitas:[
+  {t:"Isaías 55:11",p:"Foi Deus quem disse essas palavras. Você acha que ele vai cumprir o que prometeu?",prox:"Como vai ser a vida na Terra quando Deus cumprir a promessa?"},
+  {t:"Salmo 37:10, 11",p:"Como vai ser o futuro que Deus quer para nós? Que parte do texto você mais gostou?",prox:"O que temos de fazer para ter essas bênçãos? (ofereça a publicação de estudo)"}]},
+{id:"terra",cat:"futuro",tema:"A Terra vai ser destruída?",fonte:"Das suas anotações (Terra)",v:["planeta"],
+ abertura:"Bom dia! Muitos se preocupam com o fim do mundo e com o futuro do planeta.",
+ pergunta:"Acha que a Terra vai ser destruída um dia?",
+ texto:"Eclesiastes 1:4",perguntaTexto:"Segundo esse texto, quanto tempo a Terra vai durar?",
+ revisita:"Para quem Deus deu a Terra? (Salmo 115:16; Apocalipse 11:18)"},
+{id:"paz",cat:"futuro",tema:"Paz e guerra",fonte:"Modelo do app",v:["reino"],
+ abertura:"Bom dia! Todo mundo diz que quer paz, inclusive os governantes.",
+ pergunta:"Por que acha que é tão difícil ter paz de verdade?",
+ texto:"Salmo 46:9",perguntaTexto:"Quem esse texto diz que vai acabar com as guerras?",
+ revisita:"Como Deus vai trazer paz para o mundo inteiro? (Daniel 2:44)"},
+{id:"crime",cat:"futuro",tema:"Crime e segurança",fonte:"Modelo do app",v:["reino"],
+ abertura:"Olá! Há tanta violência que muita gente nem sai tranquila à noite.",
+ pergunta:"Acha que um dia vamos poder andar na rua sem medo?",
+ texto:"Salmo 37:10, 11",perguntaTexto:"Segundo esse texto, o que vai acontecer com os maus, e quem vai viver na Terra?",
+ revisita:"Como vai ser a vida sem medo? (Miqueias 4:4)"},
+{id:"saude",cat:"futuro",tema:"Doenças e fome",fonte:"Vídeos de primeira conversa e revisitas (08/2019)",
+ abertura:"Olá! Muitas pessoas ficam preocupadas com tantas doenças que aparecem hoje.",
+ pergunta:"Você acha que algum dia não vão mais existir doenças?",
+ texto:"Isaías 33:24",perguntaTexto:"O que vai acontecer com as doenças no futuro?",
+ revisita:"Muita gente fica doente por causa da fome. Será que esse problema também vai acabar?",
+ visitas:[
+  {t:"Salmo 72:16",p:"De acordo com esse texto, como o problema da fome vai ser resolvido?",prox:"Que esperança existe para os que já morreram?"},
+  {t:"João 5:28, 29",p:"O que vai acontecer com os mortos?",prox:"Por que podemos confiar nessas promessas?"}],
+ notas:["Se a pessoa disser “parece bom demais para ser verdade”: concorde que não dá para acreditar em qualquer coisa, mas a Bíblia dá bons motivos para confiar (Josué 21:45)."]},
+// ---- Sofrimento, morte e consolo
+{id:"sofrimento",cat:"sofr",tema:"Por que existe tanto sofrimento?",fonte:"Vídeos de primeira conversa e revisitas (07/2017, 10/2018 e 07/2019)",v:["sofrimento"],
+ abertura:"Bom dia! Estamos falando com as pessoas sobre a violência que vemos em todo lugar. Você viu a notícia de… ?",
+ pergunta:"Muitos se perguntam por que existe tanto sofrimento. Será que existe uma resposta?",
+ texto:"1 João 5:19",perguntaTexto:"De acordo com o texto, o mundo inteiro está no poder de quem? Você vê evidências disso?",
+ revisita:"O que Deus sente quando nos vê sofrer?",
+ visitas:[
+  {t:"Isaías 63:9",p:"Como Deus se sentiu ao ver seu povo sofrer? E o que ele fez por eles?",prox:"Como Deus vai acabar com o sofrimento?"},
+  {t:"Mateus 6:9, 10",p:"Oramos para que a vontade de Deus seja feita onde?",prox:"O que é o Reino de Deus? (mostre o vídeo)"}],
+ notas:["Se a pessoa estiver com pressa: “Sem problema, é rápido.” Leia só o texto, faça uma pergunta e combine a volta."]},
+{id:"injustica",cat:"sofr",tema:"Injustiça no mundo",fonte:"Das suas anotações (Injustiças do mundo)",v:["sofrimento"],
+ abertura:"Olá! A gente vê tanta injustiça hoje que muitos já perderam a esperança.",
+ pergunta:"Acha que algum governo humano vai conseguir acabar com a injustiça?",
+ texto:"Eclesiastes 8:9",perguntaTexto:"O que esse texto diz que acontece quando um homem domina outro?",
+ revisita:"Por que o ser humano não consegue governar a si mesmo? (Jeremias 10:23)"},
+{id:"morte",cat:"sofr",tema:"O que acontece quando morremos?",fonte:"Vídeos de primeira conversa e revisitas (07/2017 e 11/2018)",v:["morte"],
+ abertura:"Bom dia! Estamos falando sobre um assunto que mexe com todo mundo: a morte. As religiões ensinam coisas bem diferentes sobre isso.",
+ pergunta:"Qual a sua opinião? O que acontece quando morremos?",
+ texto:"Eclesiastes 9:5, 10",perguntaTexto:"Se não há trabalho nem planejamento na Sepultura, qual é a situação dos mortos? Precisamos ter medo de que estejam sofrendo?",
+ revisita:"A morte é o fim de tudo, ou os mortos podem voltar a viver?",
+ visitas:[
+  {t:"Atos 24:15",p:"De acordo com o texto, que esperança nós temos? (“Ressurreição” quer dizer voltar à vida.)",prox:"Onde vai ser a ressurreição: no céu ou aqui na Terra?"},
+  {t:"João 5:28, 29",p:"O que vai acontecer com os que estão nos túmulos memoriais?",prox:"Por que podemos confiar nessa promessa?"}],
+ notas:["Outra forma de começar: “Será que Deus queria que a morte fizesse parte da nossa vida?” Leia Apocalipse 21:4: “O que Deus vai fazer com a morte?”"]},
+{id:"ressurreicao",cat:"sofr",tema:"Vamos ver de novo quem morreu?",fonte:"Vídeo de revisitas (05/2019)",v:["morte"],
+ abertura:"Olá! Quase todo mundo já perdeu alguém querido. Queria mostrar uma esperança que consola muito.",
+ pergunta:"Acha que é possível ver de novo uma pessoa que morreu?",
+ texto:"Jó 14:14, 15",perguntaTexto:"O que Jó acreditava que ia acontecer depois de morrer? E o versículo 15 diz que Deus tem saudade… O que isso mostra?",
+ revisita:"Como vai ser o mundo quando Deus ressuscitar as pessoas?",
+ visitas:[{t:"Isaías 32:18",p:"Como vai ser a vida quando Deus ressuscitar as pessoas que amamos?",prox:"Como Deus vai trazer paz para a Terra? (ofereça a publicação de estudo)"}],
+ notas:["Dica do vídeo: na preparação, combine com seu parceiro qual parte do texto destacar (aqui, a saudade que Jeová sente dos mortos)."]},
+{id:"importa",cat:"sofr",tema:"Deus se importa com você",fonte:"Vídeos de primeira conversa e revisitas (09/2018 e 09/2019)",
+ abertura:"Bom dia! Muitas pessoas se perguntam se Deus vê o que acontece com a gente e se somos importantes para ele.",
+ pergunta:"Como você acha que Deus mostra que se importa com as pessoas?",
+ texto:"1 Pedro 5:6, 7",perguntaTexto:"Segundo o versículo 7, Deus nos convida a fazer o quê? Como podemos “lançar” sobre ele a nossa ansiedade?",
+ revisita:"Como sabemos que Deus se preocupa com cada um de nós?",
+ visitas:[
+  {t:"Mateus 10:29-31",p:"O que Deus sabe sobre cada pardal? E ele sabe até o número de quê?",prox:"Será que Deus entende o que sentimos?"},
+  {t:"Salmo 139:1, 2, 4",p:"O que nesses versículos mostra que Deus entende tudo o que sentimos?",prox:"Como o amor de Deus ajuda cada um de nós?"}],
+ notas:["Dica do vídeo: se a pessoa disser algo que não está certo (por exemplo, “Deus está no controle de tudo”), aproveite a parte certa da resposta (“Deus cuida de nós”) para continuar a conversa."]},
+{id:"depressao",cat:"sofr",tema:"Tristeza e desânimo",fonte:"Das suas anotações (Depressão e tristeza)",
+ abertura:"Bom dia! Hoje muita gente se sente triste ou sobrecarregada. Estamos mostrando um consolo que vem da Bíblia.",
+ pergunta:"O que acha que mais ajuda alguém que está passando por uma fase difícil?",
+ texto:"Salmo 34:18",perguntaTexto:"Segundo esse texto, onde Jeová está quando alguém está com o coração quebrantado?",
+ revisita:"Que convite Jesus faz para quem está sobrecarregado? (Mateus 11:28, 29)"},
+{id:"ansiedade",cat:"sofr",tema:"Ansiedade",fonte:"Modelo do app + suas anotações",
+ abertura:"Bom dia! Hoje muita gente vive ansiosa, e estamos mostrando um conselho que tem ajudado.",
+ pergunta:"O que costuma ajudar você quando está preocupado?",
+ texto:"Filipenses 4:6, 7",perguntaTexto:"O que esse texto promete para quem leva as preocupações a Deus?",
+ revisita:"Que outros conselhos práticos a Bíblia dá? (Mateus 6:34; Provérbios 3:5, 6)"},
+// ---- Família e dia a dia
+{id:"familia",cat:"vida",tema:"Família e filhos",fonte:"Vídeos de revisitas (07/2018 e 08/2018)",
+ abertura:"Bom dia! Estamos conversando com os vizinhos sobre como a Bíblia pode ajudar as famílias.",
+ pergunta:"Na sua opinião, como os pais podem ajudar os filhos a serem responsáveis?",
+ texto:"Provérbios 22:6",perguntaTexto:"O que os pais precisam fazer desde que os filhos são pequenos? Educá-los no quê?",
+ revisita:"Como os jovens podem evitar problemas?",
+ visitas:[
+  {t:"Provérbios 4:5, 6",p:"O que os jovens precisam adquirir? Como a sabedoria vai protegê-los?",prox:"Onde encontrar bons conselhos para o dia a dia?"},
+  {t:"Colossenses 3:21",p:"O que a Bíblia diz para os pais não fazerem? O que bons pais evitam?",prox:"Como a Bíblia pode ajudar os jovens?"},
+  {t:"Provérbios 2:11",p:"Como o raciocínio e o discernimento ajudam um jovem a quem oferecem drogas?",prox:"Por que os conselhos da Bíblia sempre funcionam?"}],
+ notas:["Para jovens: como imitar Jesus na obediência? (Lucas 2:51, 52; Lucas 22:42; Efésios 6:1-3)","Dica do vídeo: quando a pessoa mostra interesse, ofereça uma publicação do kit de ferramentas de ensino sobre o assunto."]},
+{id:"dinheiro",cat:"vida",tema:"Dinheiro e correria",fonte:"Vídeos de revisitas (04/2018 e 12/2019)",
+ abertura:"Olá! Muitas famílias vivem na correria para pagar as contas.",
+ pergunta:"Acha que trabalhar sem parar traz felicidade?",
+ texto:"Isaías 65:21-23",perguntaTexto:"Como seria viver num mundo assim?",
+ revisita:"Por que é ruim amar o dinheiro e querer ter muitas coisas?",
+ visitas:[
+  {t:"1 Timóteo 6:9, 10",p:"Que problemas o amor ao dinheiro pode trazer? Já viu isso acontecer com alguém?",prox:"Por que ter uma atitude positiva é bom para nós?"},
+  {t:"Provérbios 17:22",p:"Por que é bom ter uma atitude positiva e ser uma pessoa alegre? Você sabia que a Bíblia era tão útil?"}]},
+{id:"felicidade",cat:"vida",tema:"Dá para ser feliz para sempre?",fonte:"Vídeo de primeira conversa (09/2022)",v:["estudo"],
+ abertura:"Olá! Estamos fazendo uma pergunta rápida para as pessoas.",
+ pergunta:"Será que é possível ser feliz para sempre? Você diria sim, não ou talvez?",
+ texto:"Salmo 37:29",perguntaTexto:"De acordo com a promessa, os justos vão viver na Terra por quanto tempo?",
+ revisita:"Será que podemos confiar nas promessas da Bíblia? (Mostre como funciona o curso, na lição 1.)"},
+// ---- Jesus
+{id:"jesus",cat:"jesus",tema:"Quem foi Jesus?",fonte:"Vídeos de primeira conversa e revisitas (2019, 2021 e 2022)",v:["jesusDeus"],
+ abertura:"Bom dia! Quase todo mundo já ouviu falar de Jesus, mas as opiniões sobre ele são bem diferentes.",
+ pergunta:"Na sua opinião, quem foi Jesus?",
+ texto:"Mateus 16:16",perguntaTexto:"De acordo com esse texto, quem foi Jesus? Só uma pessoa boa, ou mais que isso?",
+ revisita:"Se ele era perfeito e Filho de Deus, por que teve que morrer?",
+ visitas:[
+  {t:"Mateus 20:28",p:"No final do texto, diz que Jesus deu a vida como o quê?",prox:"Como mostramos que damos valor ao sacrifício de Jesus?"},
+  {t:"João 17:3",p:"O que precisamos fazer para ter vida eterna? (Convide a pessoa para a reunião e mostre o endereço e o horário.)"}]},
+{id:"celebracao",cat:"jesus",tema:"Convite para a Celebração",fonte:"Vídeo da campanha da Celebração (2022)",v:["celebracao"],
+ abertura:"Olá! Estamos convidando as pessoas para um evento especial: a Celebração da morte de Jesus.",
+ pergunta:"Sabia que Jesus pediu para lembrarmos da morte dele, e não do seu nascimento?",
+ texto:"Lucas 22:19",perguntaTexto:"O que Jesus mandou os discípulos fazerem “em memória” dele?",
+ revisita:"Por que Jesus teve que morrer? (Mateus 20:28)"},
+// ---- Revisitas e estudo
+{id:"rev_biblia",cat:"rev",tema:"Podemos confiar na Bíblia?",fonte:"Das suas anotações (revisita por telefone ou na porta)",v:["estudar"],
+ abertura:"Olá, boa tarde! Aqui é ___. Conversei com você na semana passada e deixei uma mensagem positiva. Como você está?",
+ pergunta:"Fiquei de mostrar como podemos confiar na Bíblia. Mas antes queria saber sua opinião: como sabemos que ela realmente vem de Deus?",
+ texto:"2 Timóteo 3:16, 17",perguntaTexto:"Se Deus é o Autor, faz sentido pedir a ajuda dele para entender o que escreveu? (Tiago 1:5)",
+ revisita:"Se a Bíblia vem de Deus, o que ela diz sobre o futuro da Terra? (Salmo 37:29)",
+ ramos:[
+  ["Se disser: “Não acho que ela é inspirada”","Agradeço sua sinceridade. Se não se importar, por que pensa assim? (Ouça e escolha um dos caminhos abaixo.)"],
+  ["Ciência","Jó 26:7 (a Terra suspensa sobre o nada); Isaías 40:22 (o círculo da Terra); Jó 36:27, 28 (o ciclo da água)."],
+  ["Exatidão histórica e sobrevivência","A Bíblia sobreviveu a perseguições e proibições, e é exata em nomes, lugares e costumes (Isaías 40:8)."],
+  ["Conselhos úteis, sem contradições","Lucas 11:28. São 66 livros, cerca de 40 escritores e 1.600 anos de escrita, com uma só mensagem."],
+  ["Profecias cumpridas","Isaías 45:1 cita Ciro pelo nome muito antes de ele nascer. Daniel 2:44."],
+  ["Honestidade dos escritores","Os escritores registraram os próprios erros, como fez Moisés (Números 20:12)."],
+  ["“Cada um interpreta do seu jeito”","Veja o tópico Interpretação da Bíblia em Raciocínios. 2 Pedro 1:20, 21."]]},
+{id:"felicidade8",cat:"rev",tema:"Por que sofremos? (versão de 8 minutos)",fonte:"Do seu rascunho de apresentação",
+ abertura:"Todos querem ser felizes, não é mesmo?",
+ pergunta:"Vivemos uma vida curta e difícil. Será que era isso que Deus queria para nós?",
+ texto:"Salmo 37:29",perguntaTexto:"Segundo esse texto, qual era o propósito original de Deus para os humanos?",
+ revisita:"O que precisamos fazer para viver no futuro que Deus prometeu? (João 17:3)",
+ notas:["Explique sobre Adão e Eva: por causa do pecado de Adão, não aproveitamos a vida como Deus queria no início (Romanos 8:20).","Paulo disse que estava sujeito ao pecado, mas que “tinha prazer na lei de Deus” (Romanos 7:14, 19, 22-24).","A esperança de vida eterna foi prometida por Deus, que não pode mentir (Tito 1:1, 2). Por isso, vale a pena usar o tempo agora para conhecer a Deus."]},
+{id:"demora",cat:"rev",tema:"Por que Deus ainda não acabou com o mal?",fonte:"Das suas anotações",
+ abertura:"Que bom ver você de novo! Da outra vez falamos que Deus vai acabar com o sofrimento.",
+ pergunta:"Muita gente pergunta: se Deus vai acabar com o mal, por que ainda não acabou?",
+ texto:"2 Pedro 3:9",perguntaTexto:"O que esse texto diz sobre a paciência de Deus?",
+ revisita:"Como podemos ter certeza de que Deus vai cumprir o que promete? (Isaías 55:11; Números 23:19)"},
+{id:"promessas",cat:"rev",tema:"Deus cumpre o que promete",fonte:"Vídeo de revisitas (12/2018 e 11/2019)",
+ abertura:"Que bom te encontrar em casa! Gostei muito da nossa última conversa. Fiquei de responder: por que podemos confiar que Deus vai cumprir suas promessas?",
+ pergunta:"O que você acha?",
+ texto:"Josué 21:45",perguntaTexto:"Quantas promessas de Jeová se cumpriram? Se você tivesse um amigo que sempre cumpre a palavra, acreditaria nas promessas dele?",
+ revisita:"O que Deus prometeu para o nosso futuro?",
+ visitas:[{t:"Apocalipse 21:4",p:"Como essa promessa vai beneficiar você e quem você ama?",prox:"Como aproveitar bem a publicação de estudo"}]},
+{id:"estudo",cat:"rev",tema:"Oferecer o curso bíblico",fonte:"Vídeo Como é um estudo bíblico? (2017)",v:["estudo"],
+ abertura:"Bom dia! Estamos falando sobre aulas gratuitas da Bíblia que respondem perguntas como “Por que existe tanto sofrimento?” e “Como ter uma família feliz?”. Este vídeo curto explica melhor.",
+ pergunta:"Na publicação de estudo há vários assuntos. Qual chamou sua atenção?",
+ texto:"João 17:3",perguntaTexto:"Segundo Jesus, por que é importante conhecer a Deus?",
+ revisita:"Se tiver dois minutos, posso mostrar como funciona agora mesmo?",
+ notas:["O curso é gratuito, a pessoa escolhe o dia, o local e quanto tempo dura, e não é obrigada a se tornar Testemunha."]}
+];
+
+/* ================= QUANDO DIZEM ================= */
+const OGR=["Interesse e tempo","Religião","Testemunhas de Jeová","Bíblia","Deus e a criação","Futuro","Família","Sangue","Outras religiões"];
+const OBJ=[
+{id:"o1",g:"Interesse e tempo",rs:"Raciocínios, p. 16",q:"Não estou interessado.",r:["Pergunte com bondade se é a Bíblia ou a religião em geral que não interessa. Muitos se afastaram por causa da hipocrisia religiosa, e a Bíblia também condena isso.","Mude para um assunto comum, como o futuro, os filhos ou a segurança: “Vê alguma solução real para isso?”"],t:"Apocalipse 21:3, 4"},
+{id:"o2",g:"Interesse e tempo",rs:"Raciocínios, p. 19-20",q:"Estou ocupado.",r:["“Vou ser bem breve.” Diga a ideia principal em duas frases.","Mostre um texto, deixe uma pergunta e combine dia e horário para voltar."],t:"Lucas 17:26, 27"},
+{id:"o3",g:"Interesse e tempo",q:"Estou de saída.",r:["“Não vou atrasar você!” Faça uma pergunta e deixe um convite ou uma publicação: “Na próxima vez, mostro a resposta da Bíblia.”"],t:""},
+{id:"o4",g:"Interesse e tempo",rs:"Raciocínios, p. 20-21",q:"Não tenho dinheiro.",r:["“Não estamos pedindo dinheiro. O curso bíblico é gratuito.”"],t:"Mateus 10:8"},
+{id:"o5",g:"Interesse e tempo",rs:"Raciocínios, p. 20",q:"Por que vocês vêm sempre?",r:["“Porque cremos que vivemos nos últimos dias, e é importante todos pensarem no que vem pela frente.”","“Porque amamos a Deus e ao próximo.”"],t:"Mateus 22:37-39"},
+{id:"o6",g:"Religião",rs:"Raciocínios, p. 16-17",q:"Religião não me interessa.",r:["Concorde que as igrejas não tornaram o mundo melhor e pergunte se a pessoa acredita em Deus.","“Mas com certeza você se interessa pelo seu futuro. A Bíblia previu as condições de hoje.”"],t:"2 Timóteo 3:1-5"},
+{id:"o7",g:"Religião",rs:"Raciocínios, p. 18-19",v:["religioes"],q:"Já tenho minha religião.",r:["“Sua religião ensina que pessoas justas vão viver na Terra para sempre?”","Leia João 4:23, 24 e pergunte o que é adorar “com verdade”. Depois leia João 17:17."],t:"Salmo 37:29"},
+{id:"o8",g:"Religião",rs:"Raciocínios, p. 19",q:"Aqui já somos cristãos.",r:["“Que bom! Então você sabe que Jesus pregava de cidade em cidade. Sabe qual era o tema da pregação dele?” (Lucas 8:1)","Leia Mateus 7:21-23: precisamos fazer a vontade do Pai (João 17:3)."],t:"Lucas 8:1"},
+{id:"o9",g:"Religião",rs:"Raciocínios, p. 316",v:["religioes"],q:"Toda religião tem alguma coisa boa.",r:["“É verdade que há pessoas sinceras em todas as religiões. Mas eu acredito que só existe uma forma certa de adorar a Deus, porque Jesus disse que nem todo o que diz ‘Senhor, Senhor’ vai entrar no Reino, mas quem faz a vontade do Pai.” (Mateus 7:21)"],t:"Mateus 7:21"},
+{id:"o10",g:"Religião",v:["religioes"],q:"Minha religião é uma das maiores do mundo. Não é possível que todos estejam errados.",r:["“Muitas pessoas pensam como você. Mas eu penso diferente porque Jesus disse que o caminho para a vida é estreito e poucos o encontram.” (Mateus 7:13, 14)","O que importa não é quantos seguem, mas se o ensino está de acordo com a Bíblia."],t:"Mateus 7:13, 14"},
+{id:"o11",g:"Religião",rs:"Raciocínios, p. 315",q:"Tem muita hipocrisia na religião.",r:["Concorde. Jesus também condenou a hipocrisia religiosa (Mateus 15:7-9).","Ilustração: a existência de dinheiro falso não torna falso o verdadeiro. Vale a pena procurar a adoração que Deus aprova."],t:"Mateus 15:7-9"},
+{id:"o12",g:"Religião",rs:"Raciocínios, p. 315",q:"Levo uma vida correta, não faço mal a ninguém. Isso basta.",r:["“Que bom! Mas pense: se um filho levasse uma vida correta e nunca conversasse com o pai, será que o pai ficaria satisfeito?” Deus quer que o conheçamos (João 17:3)."],t:"Mateus 7:21"},
+{id:"o13",g:"Religião",rs:"Raciocínios, p. 317",q:"Leio a Bíblia em casa e faço minhas orações. Isso basta.",r:["“Que ótimo que você lê a Bíblia!” O eunuco etíope lia as Escrituras e mesmo assim aceitou ajuda para entender (Atos 8:30, 31).","Deus também quer que seus adoradores se reúnam (Hebreus 10:24, 25)."],t:"Atos 8:30, 31"},
+{id:"o14",g:"Testemunhas de Jeová",rs:"Raciocínios, p. 17-18",q:"Não me interesso pelas Testemunhas de Jeová.",r:["“Já se perguntou por que voluntários fazem essas visitas, mesmo sabendo que muitos não nos recebem bem?”","Com respeito: “Posso perguntar do que não gosta: do que mostramos na Bíblia ou da visita em si?”"],t:"Mateus 24:14"},
+{id:"o15",g:"Testemunhas de Jeová",q:"Vocês acabam com as famílias.",r:["A Bíblia ensina amor e respeito no lar (Efésios 5:33; Efésios 6:1-3).","Quando alguém muda de religião pode haver tensão, mas incentivamos a pessoa a ser um marido, uma esposa ou um filho ainda melhor (1 Pedro 3:1, 2)."],t:"Efésios 5:33"},
+{id:"o16",g:"Testemunhas de Jeová",rs:"Raciocínios, p. 220",v:["jesusDeus"],q:"Vocês não acreditam em Jesus.",r:["“Cremos, sim! Jesus é o Filho de Deus e nosso Salvador.” (João 3:16; Atos 4:12)","Cremos no que ele próprio disse sobre si mesmo (João 14:28)."],t:"João 3:16"},
+{id:"o17",g:"Bíblia",rs:"Raciocínios, p. 70-71",q:"Cada um interpreta a Bíblia do seu jeito.",r:["Ilustração: de que adiantaria um livro de receitas ou um dicionário que cada um interpretasse como quisesse?","Deixe a Bíblia explicar a si mesma, examinando o contexto e outros textos sobre o assunto (2 Pedro 1:20, 21). Veja o tópico Interpretação da Bíblia."],t:"2 Pedro 1:20, 21"},
+{id:"o18",g:"Bíblia",rs:"Raciocínios, p. 70",q:"Foram homens que escreveram a Bíblia.",r:["“Sim, uns 40 homens. Mas, assim como uma secretária escreve a carta que o chefe dita, a mensagem é de Deus.” (2 Timóteo 3:16; 2 Pedro 1:21)","A harmonia de 66 livros escritos ao longo de 1.600 anos mostra que houve um único Autor."],t:"2 Timóteo 3:16"},
+{id:"o19",g:"Bíblia",rs:"Raciocínios, p. 70",q:"A Bíblia se contradiz.",r:["Pergunte com calma: “Que contradição você tem em mente?” Muitas vezes, o contexto resolve.","Relatos diferentes do mesmo fato, como nos Evangelhos, mostram ângulos diferentes, como fariam testemunhas sinceras."],t:""},
+{id:"o20",g:"Bíblia",rs:"Raciocínios, p. 69-70",v:["estudar"],q:"Eu não acredito na Bíblia.",r:["Agradeça a sinceridade e pergunte por quê. Depois mostre uma profecia cumprida ou um conselho prático. Veja a apresentação “Podemos confiar na Bíblia?”."],t:"Isaías 46:10"},
+{id:"o21",g:"Deus e a criação",rs:"Raciocínios, p. 125-126",v:["universo"],q:"Não acredito em Deus.",r:["“Sempre pensou assim? O que o levou a pensar desse jeito?” Ouça com atenção.","Use a criação: a ordem do universo e o design da vida (Romanos 1:20)."],t:"Hebreus 3:4"},
+{id:"o22",g:"Deus e a criação",rs:"Raciocínios, p. 126",v:["universo"],q:"Só acredito no que vejo.",r:["Acreditamos em muitas coisas que não vemos, como o vento, a gravidade e as ondas de rádio, porque vemos os efeitos delas. A criação é o efeito que mostra o Criador (Romanos 1:20)."],t:"Hebreus 3:4"},
+{id:"o23",g:"Deus e a criação",rs:"Raciocínios, p. 155-156",v:["universo"],q:"Eu creio na evolução.",r:["Pergunte o que convenceu a pessoa. Mostre que a vida só vem de vida e que a complexidade do corpo aponta para um Projetista (Salmo 139:14)."],t:"Salmo 139:14"},
+{id:"o24",g:"Deus e a criação",rs:"Raciocínios, p. 201",v:["sofrimento"],q:"Por que Deus permite o mal?",r:["O sofrimento não vem de Deus (Tiago 1:13). O mundo está no poder do Maligno (1 João 5:19), e Deus vai acabar com o mal (Apocalipse 21:4). Veja a apresentação “Por que existe tanto sofrimento?”."],t:"1 João 5:19"},
+{id:"o25",g:"Futuro",rs:"Raciocínios, p. 427",q:"O fim não vai vir nos nossos dias.",r:["Nos dias de Noé, as pessoas também não deram atenção até o Dilúvio chegar (Mateus 24:37-39).","A profecia dos últimos dias descreve exatamente o nosso tempo (2 Timóteo 3:1-5)."],t:"Mateus 24:37-39"},
+{id:"o26",g:"Futuro",rs:"Raciocínios, p. 305-306",q:"Não vou viver até esse tempo.",r:["Mesmo quem morrer pode voltar a viver (João 11:25; Atos 24:15).","E o que aprendemos da Bíblia já melhora a vida agora (1 Timóteo 4:8)."],t:"João 11:25"},
+{id:"o27",g:"Família",q:"O que a Bíblia diz sobre disciplina é exagerado.",r:["“É verdade que a Bíblia diz que os pais devem corrigir os filhos, mas ela não incentiva os pais a serem rígidos demais. Por exemplo, ela diz: ‘Pais, não irritem os seus filhos, para que eles não desanimem.’” (Colossenses 3:21)","Na Bíblia, disciplina é principalmente ensino e treinamento com amor (Efésios 6:4)."],t:"Colossenses 3:21"},
+{id:"o28",g:"Sangue",rs:"Raciocínios, p. 346-347",q:"Vocês deixam os filhos morrer porque recusam transfusões. Acho isso horrível.",r:["“Nós aceitamos tratamentos, e dos mais seguros: os que não trazem o risco de doenças como AIDS, hepatite, malária ou doença de Chagas. Queremos o melhor tratamento para nossos filhos, como todo pai que ama.”","“Quando se perde muito sangue, a maior necessidade é repor o volume de líquido. Expansores de volume do plasma sem sangue fazem isso, já foram usados em milhares de pessoas com ótimos resultados, e nós os aceitamos.”","Ou: “Entendo. Você está pensando no seu próprio filho. Como pais, não faríamos tudo pelo bem dele? Então, se recusássemos algum tratamento, teria de haver uma razão bem forte.” Leia Atos 15:28, 29 e pergunte: “Temos fé suficiente para fazer o que Deus manda?”"],t:"Atos 15:28, 29"},
+{id:"o29",g:"Sangue",rs:"Raciocínios, p. 347-348",q:"Vocês não acreditam em transfusões de sangue.",r:["“Você ama sua esposa (seu marido) a ponto de arriscar a vida por ela? Há quem arrisque a vida pela pátria e seja considerado herói. Deus é maior do que tudo isso. A questão para nós é lealdade a ele.” (Atos 15:28, 29)","Ou: “Evitamos várias coisas comuns hoje, como mentir, adulterar, roubar, fumar e usar sangue, porque governamos a vida pela Palavra de Deus.” Assim como Adão recebeu uma única proibição, depois do Dilúvio Deus deu a ordem sobre o sangue (Gênesis 9:3, 4).","A questão real é: temos fé em Deus? Mesmo se morrermos, ele garante a ressurreição."],t:"Gênesis 9:3, 4"},
+{id:"o30",g:"Sangue",rs:"Raciocínios, p. 348",q:"E se um médico disser: “Vai morrer se não tomar transfusão”?",r:["“Se a situação é tão grave, o médico pode garantir que o paciente não vai morrer se tomar sangue? Mas há alguém que pode devolver a vida: Deus. Seria sábio dar as costas a ele justamente nessa hora?” (João 11:25)","Ou: “Talvez isso signifique que esse médico não sabe tratar o caso sem sangue. Quando possível, procuramos um médico com experiência nisso.”"],t:"João 11:25"},
+{id:"o31",g:"Outras religiões",rs:"Raciocínios, p. 21",q:"Sou budista.",r:["Mostre que você não faz parte da cristandade. Fale de paz, de família e da esperança de vida eterna na Terra."],t:"Isaías 65:21-23"},
+{id:"o32",g:"Outras religiões",rs:"Raciocínios, p. 22",q:"Sou hindu.",r:["Mostre verdades claras da Bíblia e uma esperança segura. Para quem pensa em reencarnação, mostre o que a Bíblia diz sobre a morte e a ressurreição."],t:"Eclesiastes 9:5"},
+{id:"o33",g:"Outras religiões",rs:"Raciocínios, p. 22-23",q:"Sou judeu.",r:["Diga “Escrituras Hebraicas” ou “Torá”. Mencione que adoramos o Deus de Abraão e que não cremos na Trindade."],t:"Gênesis 22:18"},
+{id:"o34",g:"Outras religiões",q:"Sou mórmon (Santos dos Últimos Dias).",r:["Veja a seção Livro de Mórmon. Seja respeitoso e use a Bíblia, que eles também aceitam."],t:"Gálatas 1:8"}
+];
+
+/* ================= SOBRE NÓS ================= */
+const FAQ=[
+{q:"Quais são as crenças principais das Testemunhas de Jeová?",r:"Adoramos Jeová, o único Deus verdadeiro, e temos fé em Jesus como seu Filho e Salvador. O Reino de Deus é um governo real que vai transformar a Terra num paraíso.",t:"Salmo 83:18; João 17:3; Daniel 2:44"},
+{q:"As Testemunhas acreditam em Jesus?",r:"Sim. Jesus é o Filho de Deus, deu sua vida como resgate, e a salvação vem por meio dele.",t:"João 3:16; Atos 4:12; João 14:28"},
+{q:"São protestantes?",r:"Somos cristãos, mas não protestantes. Não aceitamos doutrinas como a Trindade e o inferno de fogo.",t:"Atos 11:26; João 13:35"},
+{q:"Acham que só as Testemunhas serão salvas?",r:"Quem julga é Deus. Milhões terão oportunidade por meio da ressurreição.",t:"João 5:22; Atos 24:15"},
+{q:"Por que não aceitam transfusão de sangue?",r:"É uma questão religiosa: a Bíblia manda “abster-se de sangue”. Aceitamos tratamentos médicos e alternativas sem sangue. Veja também Quando dizem > Sangue.",t:"Atos 15:28, 29; Gênesis 9:4; Levítico 17:14"},
+{q:"Recusam tratamento médico?",r:"Não. Procuramos bons médicos. Decisões como a vacinação são pessoais.",t:"Lucas 5:31; Gálatas 6:5"},
+{q:"Mudaram a Bíblia?",r:"Não. A Tradução do Novo Mundo foi feita a partir dos idiomas originais e restaura o nome de Deus.",t:"Salmo 83:18"},
+{q:"Por que já mudaram algumas crenças?",r:"O entendimento da Bíblia vai ficando mais claro com o tempo.",t:"Provérbios 4:18"},
+{q:"Quem fundou as Testemunhas de Jeová?",r:"Não seguimos um fundador humano. Nosso líder é Jesus.",t:"Mateus 23:10"},
+{q:"Dão dízimo? São pagos para pregar?",r:"Não há dízimo nem coleta, e não temos clero pago. A obra é mantida por donativos voluntários.",t:"2 Coríntios 9:7; Mateus 10:8"},
+{q:"Por que pregam de casa em casa?",r:"Jesus mandou fazer discípulos, e os primeiros cristãos pregavam de casa em casa.",t:"Mateus 28:19, 20; Atos 20:20"},
+{q:"Quem estuda precisa mudar de religião?",r:"Não. Cada pessoa decide por si mesma.",t:"Josué 24:15",v:["estudo"]},
+{q:"Por que são neutros em política e não vão à guerra?",r:"Jesus disse que seus seguidores não fazem parte do mundo. Respeitamos as autoridades, mas não tomamos partido.",t:"João 17:16; João 18:36; Isaías 2:4"},
+{q:"Por que não comemoram Natal, Páscoa e aniversários?",r:"Essas festas têm origens que não são bíblicas. Jesus mandou comemorar apenas a sua morte. Veja os detalhes em Raciocínios.",t:"Lucas 22:19",v:["natal","celebracao"]},
+{q:"As Testemunhas dividem as famílias?",r:"Não. A Bíblia ensina respeito e amor no lar, mesmo quando a família tem outra religião.",t:"Efésios 5:33; 1 Pedro 3:1, 2"},
+{q:"O que tenho que fazer para ser Testemunha?",r:"Estudar a Bíblia, aplicar o que aprende e ser batizado.",t:"Mateus 28:19, 20"}
+];
+
+/* ================= TÓPICOS ================= */
+const TOP=[
+{id:"feriados",g:"rac",t:"Como avaliar um feriado",i:[
+"Pergunta 1: o feriado se baseia em algum ensino que não está na Bíblia, como a crença em outros deuses ou a adoração deles? (2 Coríntios 6:15-17)",
+"Origens a observar: ocultismo; a crença na alma imortal (Ezequiel 18:4); celebrações da Lei mosaica, que terminou com o sacrifício de Jesus (Romanos 10:4; Daniel 9:26, 27).",
+"Pergunta 2: o feriado promove o ecumenismo, honrando personalidades religiosas ou unindo pessoas de religiões diferentes?"]},
+{id:"natal",g:"rac",t:"Natal",v:["natal"],i:[
+"Jesus pediu que comemorássemos a sua morte, não o seu nascimento (Lucas 22:19, 20).",
+"Os primeiros cristãos não comemoravam o Natal. Segundo as suas anotações, a data foi instituída oficialmente em Roma por volta de 354.",
+"Jesus não nasceu em dezembro: os pastores estavam com as ovelhas no campo à noite (Lucas 2:8), o que não acontecia no inverno da região. Ele nasceu por volta de outubro de 2 AEC.",
+"Origem pagã: o 25 de dezembro coincidia com a festa romana do nascimento do sol e foi escolhido para atrair os pagãos."]},
+{id:"pascoa",g:"rac",t:"Páscoa",v:["celebracao"],i:[
+"Não tem base bíblica: Jesus mandou comemorar a sua morte, não a sua ressurreição (Lucas 22:19, 20).",
+"Origem pagã: os costumes vêm de rituais de fertilidade. O ovo simbolizava a vida nova e o coelho, a fertilidade. O nome em inglês (Easter) está ligado a Eostre, deusa da aurora e da primavera.",
+"São costumes pagãos disfarçados de celebração cristã (2 Coríntios 6:17)."]},
+{id:"aniversarios",g:"rac",t:"Aniversários",i:[
+"A Bíblia só fala de duas comemorações de aniversário, a do Faraó e a de Herodes Antipas, que não serviam a Jeová. Nas duas houve mortes (Gênesis 40:20-22; Marcos 6:21-29).",
+"Tudo o que está na Bíblia tem um motivo, e ela não fala bem dos aniversários.",
+"Costume pagão: os gregos criam que cada pessoa tinha um espírito protetor ligado ao dia do seu nascimento.",
+"Os primeiros cristãos não comemoravam aniversários. “O dia da morte é melhor do que o dia do nascimento” (Eclesiastes 7:1)."]},
+{id:"semanasanta",g:"rac",t:"Semana Santa",i:[
+"É um costume religioso, com abstinência de carne e jejum em alguns lugares.",
+"A Bíblia não dá nenhuma instrução para guardar a Semana Santa e alerta contra quem manda abster-se de alimentos (1 Timóteo 4:1-3).",
+"A Bíblia só pede que comemoremos a morte de Jesus (Lucas 22:19)."]},
+{id:"halloween",g:"rac",t:"Halloween (Dia das Bruxas)",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"Origem: festivais antigos em que se cria que os espíritos dos mortos andavam pela Terra.",
+"Está ligado ao ocultismo e à crença na alma imortal (Deuteronômio 18:10-12; Eclesiastes 9:5).",
+"Não há harmonia entre a luz e a escuridão (2 Coríntios 6:14-17)."]},
+{id:"anonovo",g:"rac",t:"Ano-Novo",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"Em Roma, o começo do ano era dedicado a Jano, deus dos começos. O nome do mês de janeiro vem dele.",
+"Muitas comemorações envolvem superstições e bebedeira (Romanos 13:13; 1 Pedro 4:3).",
+"Use a pergunta 1 da avaliação de feriados."]},
+{id:"cruz",g:"rac",t:"Cruz",i:[
+"A Bíblia usa a palavra grega staurós para o instrumento em que Jesus foi executado (Mateus 27:40; João 19:17). Ela significa estaca ou poste.",
+"A palavra xýlon, também usada, se refere a um madeiro (Atos 5:30).",
+"A cruz já existia em culturas pré-cristãs. Constantino a usou como símbolo dos seus exércitos, e depois ela foi adotada para atrair os pagãos.",
+"Jeová não quer que o adoremos com imagens (Êxodo 20:4, 5; Atos 17:29)."]},
+{id:"idolos",g:"rac",t:"Ídolos, imagens e ícones",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"Deus proibiu fazer e adorar imagens (Êxodo 20:4, 5).",
+"Os ídolos “têm boca, mas não falam” (Salmo 115:4-8).",
+"Jeová não dá a sua glória a imagens (Isaías 42:8). “Guardem-se dos ídolos” (1 João 5:21).",
+"Deus deve ser adorado “com espírito e verdade” (João 4:24)."]},
+{id:"inferno",g:"rac",t:"Inferno",v:["morte"],obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"Os mortos não sabem de nada (Eclesiastes 9:5, 10; Salmo 146:4).",
+"Na Bíblia, a palavra traduzida por “inferno” (Seol ou Hades) se refere à sepultura comum. Até Jesus esteve no Hades (Atos 2:31).",
+"O salário do pecado é a morte, não o tormento eterno (Romanos 6:23).",
+"A ideia de queimar pessoas nunca passou pela mente de Deus (Jeremias 7:31). Deus é amor (1 João 4:8)."]},
+{id:"trindade",g:"rac",t:"Trindade",v:["jesusDeus"],i:[
+"A palavra “Trindade” não aparece na Bíblia.",
+"Jesus nunca disse que era igual a Deus: “O Pai é maior do que eu” (João 14:28).",
+"Jesus chamou os discípulos de irmãos (Mateus 28:10). Isso não os tornava irmãos do Deus Todo-Poderoso, e sim irmãos pela fé no Filho de Deus.",
+"“Para nós há um só Deus, o Pai” (1 Coríntios 8:6). Veja também 1 Pedro 1:3, João 17:3 e Gálatas 3:20.",
+"O Concílio de Niceia, convocado por Constantino para evitar divisões no império, foi o ponto de partida dessa doutrina."]},
+{id:"interpretacao",g:"rac",t:"Interpretação da Bíblia",links:[["Artigo: Como entender a Bíblia (Despertai!)","https://www.jw.org/pt/biblioteca/revistas/g201211/como-entender-a-biblia/"]],i:[
+"A Bíblia tem 66 livros (39 nas Escrituras Hebraicas e 27 nas Gregas). O Autor é Jeová, mas cerca de 40 escritores foram usados ao longo de uns 1.600 anos (2 Timóteo 3:16; 2 Pedro 1:21).",
+"A Bíblia não é um livro cujo significado depende só da opinião do leitor. O objetivo do estudo é descobrir o que Deus realmente quis transmitir.",
+"Pergunte não só “O que esse texto significa para mim?”, mas também “O que Jeová quis ensinar por meio dele?”.",
+"Examine o contexto: leia os versículos antes e depois e veja quem está falando, com quem e em que situação.",
+"Compare textos: deixe a Bíblia explicar a si mesma. Um texto difícil é esclarecido por outros sobre o mesmo assunto.",
+"Pesquise com esforço, como quem procura um tesouro (Provérbios 2:3-5). Os bereanos examinavam as Escrituras todos os dias (Atos 17:11).",
+"Peça a ajuda do Autor (Tiago 1:5, 6) e aceite a ajuda de quem conhece a Bíblia, como fez o eunuco etíope (Atos 8:30, 31).",
+"Deixe a Bíblia corrigir as suas próprias ideias (2 Timóteo 3:16). As ideias pessoais não podem obscurecer o que ela realmente diz.",
+"Ilustração: de que adiantaria um livro de receitas ou um dicionário que cada um interpretasse como quisesse? Daria certo? A interpretação não seria influenciada por opiniões pessoais? (2 Pedro 1:20, 21)"]},
+{id:"sangue",g:"rac",t:"Sangue",links:[["Raciocínios: Sangue (Biblioteca On-line)","https://wol.jw.org/pt/wol/d/r5/lp-t/1991442"]],i:[
+"A ordem de se abster de sangue foi dada a Noé (Gênesis 9:3, 4), repetida na Lei (Levítico 17:11, 12, 14) e confirmada aos cristãos (Atos 15:28, 29).",
+"Depois do Dilúvio, Deus deu uma única proibição para toda a humanidade, assim como Adão tinha recebido uma única proibição no Éden.",
+"Raciocínio: se o médico mandasse você se abster de álcool, seria certo tomar álcool na veia? “Abster-se de sangue” também inclui não recebê-lo pela veia.",
+"Não rejeitamos a medicina. Aceitamos tratamentos sem sangue, como os expansores de volume do plasma. Quando se perde muito sangue, a maior necessidade é repor o volume de líquido.",
+"A questão de fundo é lealdade e fé: Deus pode devolver a vida (João 11:25).",
+"Para responder às objeções mais comuns, veja Quando dizem > Sangue."]},
+{id:"apocrifos",g:"rac",t:"Apócrifos",i:[
+"A palavra grega apókryphos (escondido) aparece três vezes na Bíblia (Marcos 4:22; Lucas 8:17; Colossenses 2:3).",
+"Hoje o nome se refere aos livros acrescentados pela Igreja Católica no Concílio de Trento (1546), os “deuterocanônicos”: Tobias, Judite, Sabedoria, Eclesiástico, Baruc, 1 e 2 Macabeus e acréscimos a Ester e a Daniel.",
+"Evidências contra eles: contradizem os livros canônicos e a si mesmos, têm erros históricos e geográficos e nunca são citados nos livros inspirados.",
+"Não foram aceitos pelos judeus da Palestina, por Josefo, por Fílon ou por Jerônimo.",
+"O autor de 2 Macabeus se desculpa pelo seu esforço (2 Macabeus 15:38, 39). Algum escritor bíblico fez isso?",
+"O Eclesiástico (25:24) culpa a mulher pelo pecado, mas a Bíblia atribui a culpa a Adão (Romanos 5:12).",
+"2 Macabeus diz que Jeremias escondeu o tabernáculo numa caverna, mas ele já tinha sido substituído pelo templo séculos antes.",
+"Baruc: coloca Jeremias em Babilônia e fala em sete gerações de exílio, em vez de 70 anos.",
+"Sabedoria: diz falar por Salomão, mas cita livros escritos depois dele, e ensina a imortalidade da alma.",
+"Tobias: as datas da narrativa dariam mais de 257 anos de vida, contra os 102 do próprio livro.",
+"Judite: faz de Nabucodonosor rei da Assíria (Judite 1:5).",
+"Acréscimos a Daniel: foram escritos em grego, enquanto o livro de Daniel foi escrito em hebraico e aramaico.",
+"Paulo avisou: “Não prestem atenção a fábulas judaicas” (Tito 1:14)."]},
+{id:"homossexualidade",g:"rac",t:"Homossexualidade",i:[
+"A Bíblia condena as práticas homossexuais (Levítico 18:22; Romanos 1:26, 27; 1 Coríntios 6:9-11).",
+"Jesus não incentivou seus seguidores a aceitar qualquer estilo de vida.",
+"“Eles nasceram assim”: mesmo que alguém tenha essa tendência, a prática continua sendo condenada. Se alguém nascesse com tendência à violência, a violência deixaria de ser errada?",
+"1 Coríntios 6:11 mostra que alguns mudaram: “Alguns de vocês eram assim.”",
+"Tom: “Eu rejeito a conduta, não as pessoas.” Trate todos com respeito (Mateus 7:12)."]},
+{id:"desassociacao",g:"rac",t:"Remoção da congregação (desassociação)",obs:"Desde 2024 a organização usa “removido da congregação” e fez ajustes no tratamento. Confira as orientações atuais.",i:[
+"Dois pilares, sempre juntos: um cristão batizado comete um pecado grave e não se arrepende.",
+"É uma provisão amorosa que traz honra a Jeová (1 Pedro 1:14-16).",
+"Protege a congregação (1 Coríntios 5:6, 11-13).",
+"Ajuda o transgressor a cair em si (Ezequiel 33:11; Hebreus 12:9-11; Lucas 15:17).",
+"A porta continua aberta para quem se arrepende (2 Coríntios 2:6-8)."]},
+{id:"animais",g:"rac",t:"Animais",i:[
+"Só os humanos foram criados à imagem de Deus (Gênesis 1:27, 28).",
+"A Lei mandava dar aos animais comida, descanso e proteção (Êxodo 23:4, 5, 12; Deuteronômio 22:10; Deuteronômio 25:4).",
+"Deus permite matar animais para comer, para se proteger ou para fazer roupas (Êxodo 21:28; Marcos 1:6; João 21:9-13).",
+"“O justo cuida dos seus animais domésticos” (Provérbios 12:10)."]},
+{id:"vestimenta",g:"rac",t:"Modo de se vestir e se arrumar",i:[
+"Nossas roupas passam uma mensagem sobre as nossas crenças e intenções.",
+"Evitamos roupas muito apertadas, curtas, decotadas ou sensuais, pensando nos outros (Filipenses 2:4).",
+"Três regras: modéstia, higiene e roupa apropriada ao lugar (1 Timóteo 2:9, 10)."]},
+{id:"aborto",g:"rac",t:"Aborto",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"Deus valoriza a vida desde o ventre (Salmo 139:16; Jeremias 1:5).",
+"Na Lei, causar a morte de um feto era tratado com seriedade (Êxodo 21:22, 23).",
+"Seja compassivo com quem já fez um aborto: Deus perdoa os arrependidos (Isaías 1:18; Salmo 103:12)."]},
+{id:"vinganca",g:"rac",t:"Vingança",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"“Não paguem a ninguém mal com mal… a vingança é minha, diz Jeová” (Romanos 12:17-21).",
+"Espere em Jeová (Provérbios 20:22). Não guarde rancor (Levítico 19:18)."]},
+// consolo
+{id:"luto",g:"con",t:"Quando alguém morre",v:["morte"],i:[
+"“Não tenha medo, pois estou com você” (Isaías 41:10).",
+"O rei Davi ficou arrasado com a morte de Absalão (2 Samuel 18:33).",
+"Não segure o choro. Jesus chorou por Lázaro (João 11:35), Abraão chorou por Sara (Gênesis 23:2), José chorou por seu pai (Gênesis 50:1) e Davi chorou por Jônatas (2 Samuel 1:11, 12).",
+"Não desconte a dor em coisas prejudiciais (2 Coríntios 7:1).",
+"Esperança: João 5:28, 29; Atos 24:15."]},
+{id:"briga",g:"con",t:"Quando alguém briga com um irmão",i:[
+"Identifique o problema e ataque a raiz, não os sintomas.",
+"Pare de julgar (Mateus 7:1-5; Romanos 14:13). Não se ofenda facilmente (Eclesiastes 7:9; Gênesis 45:24).",
+"Faça primeiro as pazes com seu irmão (Mateus 5:23, 24). Os planos fracassam quando não há conversa (Provérbios 15:22).",
+"Suportem uns aos outros (Colossenses 3:12-14). É bonito deixar passar a ofensa (Provérbios 19:11; Provérbios 25:28)."]},
+{id:"desanimo",g:"con",t:"Quando alguém está espiritualmente desanimado",i:[
+"O desânimo suga nossas forças (Provérbios 24:10).",
+"“Sou um caso perdido”: Isaías 1:18. Incentive a pessoa a orar.",
+"Servir a Jeová não é pesado para quem o ama (1 João 5:3; Mateus 11:28-30).",
+"Lembre-se dos irmãos que servem a Jeová mesmo com dificuldades. Veja também Jeremias 31:3 e Isaías 30:15."]},
+{id:"ansiedade_c",g:"con",t:"Quando alguém sofre com ansiedade",i:[
+"Nem toda ansiedade é prejudicial, mas a ansiedade extrema é devastadora.",
+"Mateus 6:25, 27; Lucas 12:29-31.",
+"Orar: Filipenses 4:6, 7; Mateus 6:8. Ler a Bíblia: Salmo 119:28. Ter fé: João 14:1; Provérbios 3:5, 6."]},
+{id:"depressao_c",g:"con",t:"Depressão e tristeza",i:[
+"Mateus 11:28, 29; Salmo 73:23; Salmo 34:18; Isaías 57:15; Isaías 41:9, 10; Mateus 10:29-31; Salmo 55:22.",
+"Davi ficava muito triste (Salmo 35:14), mas esperava em Jeová (Salmo 37:7).",
+"Ana estava tão triste que nem comia (1 Samuel 1:6-8), mas desabafou e foi ajudada (1 Samuel 1:18).",
+"Jó perdeu tudo (Jó 10:1), mas se manteve íntegro (Jó 27:5)."]},
+{id:"importa_c",g:"con",t:"Deus se importa conosco",i:[
+"Isaías 49:15; Mateus 10:29-31; Salmo 34:15; Salmo 139:1, 2; Filipenses 4:6, 7.",
+"Isaías 63:9; Zacarias 2:8; Jeremias 29:11, 12; Isaías 58:9; Salmo 94:19."]},
+{id:"descrentes",g:"con",t:"Quando alguém vive com descrentes",obs:"Completei este tópico para você. Confira antes de usar.",i:[
+"A boa conduta pode ganhar o familiar “sem uma palavra” (1 Pedro 3:1, 2).",
+"Procure ter paz com todos, na medida do possível (Romanos 12:18; Colossenses 4:6).",
+"Jesus avisou que poderia haver oposição em casa (Mateus 10:36), mas Jeová acolhe você (Salmo 27:10)."]},
+// textos
+{id:"jeova",g:"tex",t:"Jeová, o nome de Deus",i:["Salmo 83:18; Isaías 42:8; Êxodo 6:3; Romanos 10:13; Êxodo 3:15; Isaías 12:4; Malaquias 3:16; Salmo 91:14, 15."]},
+{id:"reino_t",g:"tex",t:"Reino de Deus",v:["reino"],i:["Mateus 6:9, 10; Mateus 24:14; Daniel 7:13, 14; Daniel 2:44; Mateus 4:23; Lucas 4:43."]},
+{id:"ciencia_t",g:"tex",t:"Ciência e a Bíblia",v:["universo"],i:[
+"Jó 26:7: a Terra suspensa sobre o nada (Newton, 1687).",
+"Jeremias 33:25; Jó 38:33: as leis dos céus.",
+"Jó 36:27, 28; Eclesiastes 1:7; Isaías 55:10; Amós 9:6: o ciclo da água.",
+"Levítico 11:28; Levítico 13:1-5; Deuteronômio 23:13: higiene e quarentena.",
+"Isaías 40:22: o círculo da Terra. Salmo 139:16: o embrião.",
+"Provérbios 17:22: o coração alegre faz bem. Salmo 102:25, 26: os céus se gastarão (entropia).",
+"Levítico 12:3: a circuncisão no oitavo dia."]},
+{id:"familia_t",g:"tex",t:"Conselhos para a família",i:["Deuteronômio 6:6, 7; Colossenses 3:18-21; Efésios 5:33; 1 Pedro 3:1-7; Efésios 6:1-3; Provérbios 20:18; Hebreus 12:11; Provérbios 22:6; Tito 2:4, 5; Lucas 11:28."]},
+{id:"promessas_t",g:"tex",t:"Promessas para o futuro",v:["planeta"],i:["Provérbios 2:22; Salmo 46:9; Isaías 2:4; Miqueias 4:4; Isaías 35:1; Isaías 33:24; Isaías 35:5, 6; Jó 33:25; Apocalipse 21:4; Salmo 72:16; Isaías 65:21-23."]},
+{id:"ressurreicao_t",g:"tex",t:"Fim da morte e ressurreição",v:["morte"],i:["João 5:28, 29; Atos 24:15; Jó 14:14, 15; João 11:25, 26; Isaías 25:8; Isaías 26:19; 1 Coríntios 15:26; Lucas 20:37, 38."]},
+{id:"morte_t",g:"tex",t:"Condição dos mortos",v:["morte"],i:["Eclesiastes 9:5, 10; Isaías 26:14; Salmo 146:4; Ezequiel 18:4."]},
+{id:"doencas",g:"tex",t:"Doenças",i:["Jó 30:17; Salmo 41:3; Salmo 119:67; Provérbios 17:22; Isaías 33:24; Jó 14:1; Jó 33:25."]},
+{id:"sofrimento_t",g:"tex",t:"Sofrimento e injustiça: por quê?",v:["sofrimento"],i:[
+"Imperfeição: Salmo 51:5; Romanos 3:23; Romanos 5:12; Romanos 6:23.",
+"Não é causado por Deus: Tiago 1:13. O mundo está no poder do Maligno: 1 João 5:19.",
+"Os humanos não conseguem governar a si mesmos: Jeremias 10:23; Eclesiastes 8:9.",
+"Por que Deus ainda não agiu: 2 Pedro 3:9. A garantia de que vai agir: Isaías 55:11; Números 23:19; Josué 21:45."]},
+{id:"terra_t",g:"tex",t:"Terra",v:["planeta"],i:["Salmo 104:5; Salmo 115:16; Eclesiastes 1:4; Apocalipse 11:18."]},
+{id:"biblia_t",g:"tex",t:"Bíblia",v:["estudar"],i:["Jeremias 20:8, 9; Lucas 11:28; Provérbios 3:13-15; Josué 1:8; Tiago 1:25; João 8:47; Romanos 15:4; 2 Timóteo 3:16, 17."]},
+{id:"filhos",g:"tex",t:"Filhos",i:["Provérbios 22:6; Deuteronômio 6:6, 7; Isaías 54:13; Provérbios 4:5, 6; Provérbios 2:11; Colossenses 3:21."]},
+{id:"irmaos",g:"tex",t:"Para encorajar os irmãos",i:[
+"Hebreus 12:12, 13; Efésios 4:1-4; Marcos 12:33; Salmo 26:8, 12; Jeremias 45:5; Atos 24:16; Romanos 1:9.",
+"Êxodo 14:13, 14; Êxodo 15:26; Hebreus 13:5, 6; Eclesiastes 7:9; Êxodo 4:10-13; Deuteronômio 30:11-14; Deuteronômio 30:15-18.",
+"Salmo 15:2, 4; João 11:25; João 14:15, 21; Provérbios 15:4; Provérbios 12:18; 1 Tessalonicenses 4:11, 12; Provérbios 19:17.",
+"Salmo 4:3; Hebreus 13:17; Jeremias 31:3; Salmo 51:10; 2 Coríntios 6:12, 13; Isaías 30:15; Deuteronômio 4:29, 30."]},
+// mórmon
+{id:"mor_biblia",g:"mor",t:"A Bíblia foi corrompida?",i:[
+"1 Néfi 13 diz que a Bíblia perdeu “muitas passagens claras e preciosas”.",
+"Deus seria fraco a ponto de não proteger a palavra que inspirou? (Isaías 40:8; 1 Pedro 1:24, 25)",
+"Se a Bíblia tivesse sido adulterada por uma igreja, ela apoiaria as doutrinas dessa igreja. Mas condena as práticas dela.",
+"Compare 2 Néfi 29:6 com Gálatas 1:8."]},
+{id:"mor_jerusalem",g:"mor",t:"Nova Jerusalém",i:[
+"3 Néfi 21:23 diz que os homens a construirão na terra. A Bíblia diz que ela desce do céu, “da parte de Deus” (Apocalipse 21:2).",
+"Apocalipse 21:16: são 12.000 estádios (cerca de 2.200 km) de comprimento, largura e altura. É linguagem figurada.",
+"Ela representa o governo justo que Abraão esperava, “cujo construtor é Deus” (Hebreus 11:10)."]},
+{id:"mor_cruz",g:"mor",t:"Cruz no Livro de Mórmon",i:["1 Néfi 11:32-34 fala em “cruz”, mas staurós significa estaca. Veja o tópico Cruz. (Êxodo 20:4, 5; Atos 17:29)"]}
+];
+const DOUT=[
+{q:"Por que Deus permite o sofrimento?",r:"O sofrimento não vem de Deus. A rebelião no Éden levantou uma questão que só o tempo resolveria, e Deus vai acabar com todo o sofrimento.",t:"Tiago 1:13; 1 João 5:19; Apocalipse 21:4",v:["sofrimento"]},
+{q:"A alma é imortal?",r:"Na Bíblia, a alma é a pessoa inteira, e a alma morre.",t:"Gênesis 2:7; Ezequiel 18:4",v:["morte"]},
+{q:"Todos os bons vão para o céu?",r:"Um número limitado governará com Cristo no céu. Milhões viverão para sempre na Terra.",t:"Apocalipse 14:1; Salmo 37:29; Mateus 5:5"},
+{q:"O mundo vai acabar?",r:"A Terra vai durar para sempre. O que vai acabar é a maldade.",t:"Eclesiastes 1:4; 1 João 2:17; Salmo 37:10",v:["planeta"]}
+];
+
+/* ================= BÍBLIA: LINKS (JW Library / navegador) ================= */
+const BK={"Gênesis":1,"Êxodo":2,"Levítico":3,"Números":4,"Deuteronômio":5,"Josué":6,"Juízes":7,"Rute":8,"Samuel":9,"Reis":11,"Crônicas":13,"Esdras":15,"Neemias":16,"Ester":17,"Jó":18,"Salmos":19,"Salmo":19,"Provérbios":20,"Eclesiastes":21,"Cântico de Salomão":22,"Isaías":23,"Jeremias":24,"Lamentações":25,"Ezequiel":26,"Daniel":27,"Oseias":28,"Joel":29,"Amós":30,"Obadias":31,"Jonas":32,"Miqueias":33,"Naum":34,"Habacuque":35,"Sofonias":36,"Ageu":37,"Zacarias":38,"Malaquias":39,"Mateus":40,"Marcos":41,"Lucas":42,"João":43,"Atos":44,"Romanos":45,"Coríntios":46,"Gálatas":48,"Efésios":49,"Filipenses":50,"Colossenses":51,"Tessalonicenses":52,"Timóteo":54,"Tito":56,"Filêmon":57,"Hebreus":58,"Tiago":59,"Pedro":60,"Judas":65,"Apocalipse":66};
+const NOMES=Object.keys(BK).sort((a,b)=>b.length-a.length).join("|");
+const REF_RE=new RegExp(`(^|[^A-Za-zÀ-ÿ])((?:[123]\\s)?(?:${NOMES})\\s\\d{1,3}:\\d{1,3}(?:\\s?[-–,]\\s?\\d{1,3})*)`,"g");
+function codigo(ref){
+  const m=ref.match(/^(?:([123])\s)?(.+?)\s(\d+):(.+)$/);if(!m)return null;
+  const n=m[1]?+m[1]:0,nome=m[2],cap=+m[3];let b=BK[nome];if(!b)return null;
+  if(nome==="João"&&n)b=61+n;else if(n)b=b+n-1;
+  const vs=m[4].match(/\d+/g).map(Number),v1=vs[0],v2=Math.max(...vs);
+  const c=v=>String(b*1e6+cap*1e3+v).padStart(8,"0");
+  return v2>v1?`${c(v1)}-${c(v2)}`:c(v1);
+}
+const q8="srcid=jwlshare&wtlocale=T&prefer=lang&pub=nwtsty&bible=";
+const webURL=c=>"https://www.jw.org/finder?"+q8+c;
+const appURL=c=>"jwlibrary:///finder?"+q8+c;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const link=s=>esc(s).replace(REF_RE,(all,pre,ref)=>{const c=codigo(ref);return c?`${pre}<a class="ref" href="${webURL(c)}" data-b="${c}">${ref}</a>`:all});
+
+/* ================= UTILIDADES ================= */
+const $=s=>document.querySelector(s);
+const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const celular=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let abrir=LS.get("abrir",celular?"app":"web");
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>t.style.display="none",1600)}
+let favs=LS.get("favs",[]);
+const favLabel=id=>favs.includes(id)?"Remover dos favoritos":"Salvar nos favoritos";
+function toggleFav(id,btn){favs=favs.includes(id)?favs.filter(f=>f!==id):[...favs,id];LS.set("favs",favs);if(btn)btn.textContent=favLabel(id);toast(favs.includes(id)?"Salvo nos favoritos":"Removido");if(aba==="fav")render()}
+const favBtn=id=>`<button class="b2" onclick="toggleFav('${id}',this)">${favLabel(id)}</button>`;
+const q=()=>$("#busca").value.toLowerCase().trim();
+const bate=o=>!q()||JSON.stringify(o).toLowerCase().includes(q())||(o.v||[]).some(k=>VID[k].t.toLowerCase().includes(q()));
+const aberto=()=>q()?" open":"";
+const vidRow=v=>v&&v.length?`<div class="row"><div class="lb">Vídeo para mostrar</div><div style="display:flex;flex-wrap:wrap;gap:8px">${v.map(k=>`<a class="btn b2" target="_blank" rel="noopener" href="${VID[k].u}">${esc(VID[k].t)}</a>`).join("")}</div></div>`:"";
+const linksRow=l=>l&&l.length?`<div class="row">${l.map(([t,u])=>`<div class="pt"><a class="lnk" target="_blank" rel="noopener" href="${u}">${esc(t)}</a></div>`).join("")}</div>`:"";
+
+/* abrir textos no JW Library, com volta automática para o navegador */
+document.addEventListener("click",e=>{
+  const a=e.target.closest("a.ref");if(!a)return;
+  e.preventDefault();const c=a.dataset.b,web=webURL(c);
+  if(abrir==="app"){
+    let saiu=false;const marca=()=>{saiu=true};
+    document.addEventListener("visibilitychange",marca,{once:true});window.addEventListener("blur",marca,{once:true});
+    location.href=appURL(c);
+    setTimeout(()=>{if(!saiu&&!document.hidden)window.open(web,"_blank")},1600);
+  }else window.open(web,"_blank");
+});
+function marcarAbrir(){document.querySelectorAll(".opt button").forEach(b=>b.classList.toggle("on",b.dataset.ab===abrir))}
+document.querySelectorAll(".opt button").forEach(b=>b.onclick=()=>{abrir=b.dataset.ab;LS.set("abrir",abrir);marcarAbrir();toast(abrir==="app"?"Textos vão abrir no JW Library":"Textos vão abrir no navegador")});
+marcarAbrir();
+
+/* ================= CARTÕES ================= */
+const getPres=id=>id==="mes"?LS.get("mes",null):PRES.find(p=>p.id===id);
+function textoPres(p){
+  let s=`${p.tema||""}\n\n${p.abertura}\nPergunta: ${p.pergunta}\nTexto: ${p.texto}\nPergunta sobre o texto: ${p.perguntaTexto}\nPara a revisita: ${p.revisita}`;
+  (p.visitas||[]).forEach((v,i)=>{s+=`\n\nRevisita ${i+1}: ${v.t}\n${v.p}${v.prox?`\nDeixe a pergunta: ${v.prox}`:""}`});
+  return s;
+}
+function copiarPres(id){const p=getPres(id);if(p&&navigator.clipboard)navigator.clipboard.writeText(textoPres(p)).then(()=>toast("Copiado"))}
+function linhasPres(p){
+  const row=(l,v)=>v?`<div class="row"><div class="lb">${l}</div><div class="an">${link(v)}</div></div>`:"";
+  let h=row("Frase para começar",p.abertura)+row("Pergunta",p.pergunta)+row("Texto",p.texto)+row("Pergunta sobre o texto",p.perguntaTexto)+row("Para a revisita",p.revisita);
+  (p.visitas||[]).forEach((v,i)=>{
+    h+=`<div class="row visita"><div class="lb">Revisita ${i+1}: ${link(v.t)}</div><div class="pt">${link(v.p)}</div>${v.prox?`<div class="help" style="margin-top:6px">Deixe a pergunta: ${link(v.prox)}</div>`:""}</div>`;
+  });
+  if(p.ramos)h+=`<div class="row"><div class="lb">Caminhos conforme a resposta</div>${p.ramos.map(([a,b])=>`<div class="pt" style="margin-top:8px"><span style="font-weight:500">${esc(a)}:</span> ${link(b)}</div>`).join("")}</div>`;
+  if(p.notas)h+=`<div class="row"><div class="lb">Observações</div>${p.notas.map(n=>`<div class="pt" style="margin-top:6px">${link(n)}</div>`).join("")}</div>`;
+  return h+vidRow(p.v);
+}
+const cardPres=p=>`<details class="box"${aberto()}><summary><span><span class="t">${esc(p.tema)}</span><span class="src">${esc(p.fonte||"")}${p.visitas?` · ${p.visitas.length+1} visitas`:""}</span></span></summary>
+ ${linhasPres(p)}<div class="acts"><button class="b1" onclick="copiarPres('${p.id}')">Copiar</button>${favBtn("p_"+p.id)}</div></details>`;
+const GRUPOS={rac:"Raciocínios",con:"Consolo",tex:"Textos por tema",mor:"Livro de Mórmon"};
+const cardTop=o=>`<details class="box"${aberto()}><summary><span><span class="t">${esc(o.t)}</span><span class="src">${esc(GRUPOS[o.g])}</span></span></summary>
+ ${o.obs?`<div class="row help">${esc(o.obs)}</div>`:""}${o.i.map(x=>`<div class="row pt">${link(x)}</div>`).join("")}${linksRow(o.links)}${vidRow(o.v)}
+ <div class="acts">${favBtn("t_"+o.id)}</div></details>`;
+const cardObj=o=>`<details class="box"${aberto()}><summary><span><span class="t">“${esc(o.q)}”</span><span class="src">${esc(o.g)}${o.rs?` · ${esc(o.rs)}`:""}</span></span></summary>
+ ${o.r.map(x=>`<div class="row pt">${link(x)}</div>`).join("")}${o.t?`<div class="row"><div class="lb">Texto útil</div><div class="pt">${link(o.t)}</div></div>`:""}${vidRow(o.v)}
+ <div class="acts">${favBtn(o.id)}</div></details>`;
+const cardFaq=(f,id,src)=>`<details class="box"${aberto()}><summary><span><span class="t">${esc(f.q)}</span><span class="src">${src}</span></span></summary>
+ <div class="row pt">${esc(f.r)}</div><div class="row"><div class="lb">Textos</div><div class="pt">${link(f.t)}</div></div>${vidRow(f.v)}
+ <div class="acts">${src==="Sobre nós"?`<a class="btn b1" target="_blank" rel="noopener" href="https://www.jw.org/pt/pesquisar/?q=${encodeURIComponent(f.q)}">Ver no jw.org</a>`:""}${favBtn(id)}</div></details>`;
+
+/* ================= ABAS ================= */
+let aba="ap",sub="obj";
+function telaAp(){
+  const m=LS.get("mes",null);
+  let h=`<h2>Apresentação do mês</h2>`;
+  h+=m?`<div class="box"><div class="slab"><span class="t">${esc(m.tema||"Apresentação do mês")}</span><span class="src">Definida por você</span></div>${linhasPres(m)}
+   <div class="acts"><button class="b1" onclick="copiarPres('mes')">Copiar</button><button class="b2" onclick="editarMes()">Editar</button></div></div>`
+   :`<div class="box"><div class="slab"><span class="t">Ainda não definida</span><span class="src">Preencha com a apresentação da reunião do meio de semana</span></div>
+   <div class="acts"><button class="b1" onclick="editarMes()">Preencher</button></div></div>`;
+  h+=`<div id="editor"></div>`;
+  let algum=false;
+  CATS.forEach(([k,nome])=>{const l=PRES.filter(p=>p.cat===k&&bate(p));if(l.length){algum=true;h+=`<h2>${nome}</h2>`+l.map(cardPres).join("")}});
+  if(!algum)h+=`<p class="empty">Nada encontrado.</p>`;
+  h+=`<h2>Dicas dos vídeos</h2><div class="panel">
+   <p>Diga seu nome e pergunte o nome da pessoa.</p>
+   <p>Se a resposta não estiver certa, aproveite a parte certa e continue a partir dela.</p>
+   <p>Na preparação, combine com seu parceiro qual parte do texto destacar.</p>
+   <p>Se a pessoa estiver com pressa, leia só um texto e faça uma pergunta.</p>
+   <p>Quando a pessoa mostrar interesse, ofereça uma publicação do kit de ferramentas.</p>
+   <p style="margin:0">Antes de sair, deixe uma pergunta e combine o dia e o horário da volta (${link("1 Coríntios 9:19-23")}).</p></div>`;
+  return h;
+}
+function editarMes(){
+  const m=LS.get("mes",{});
+  const f=(k,l)=>`<label for="e_${k}">${l}</label><input id="e_${k}" value="${esc(m[k]||"")}">`;
+  $("#editor").innerHTML=`<div class="box"><div class="slab"><span class="t">Editar apresentação do mês</span><span class="src">Fica salva neste aparelho</span></div><div class="row">
+   ${f("tema","Título")}${f("abertura","Frase para começar")}${f("pergunta","Pergunta")}${f("texto","Texto (ex.: Salmo 37:29)")}${f("perguntaTexto","Pergunta sobre o texto")}${f("revisita","Pergunta para a revisita")}
+   <p class="help">Escreva os textos com o nome completo do livro (ex.: 1 Pedro 5:7) para virarem links.</p></div>
+   <div class="acts"><button class="b1" onclick="salvarMes()">Salvar</button><button class="b2" onclick="$('#editor').innerHTML=''">Cancelar</button>${m.tema?`<button class="b2" onclick="localStorage.removeItem('mes');render()">Apagar</button>`:""}</div></div>`;
+  $("#editor").scrollIntoView({behavior:"smooth"});
+}
+function salvarMes(){const m={};["tema","abertura","pergunta","texto","perguntaTexto","revisita"].forEach(k=>m[k]=$("#e_"+k).value.trim());LS.set("mes",m);toast("Salvo");render()}
+
+function listaObj(){let h="";OGR.forEach(g=>{const l=OBJ.filter(o=>o.g===g&&bate(o));if(l.length)h+=`<h3>${g}</h3>`+l.map(cardObj).join("")});return h}
+function telaVideos(){
+  return Object.entries(VID).filter(([k,v])=>!q()||v.t.toLowerCase().includes(q())).map(([k,v])=>{
+    const usos=[...PRES.filter(p=>(p.v||[]).includes(k)).map(p=>p.tema),...TOP.filter(t=>(t.v||[]).includes(k)).map(t=>t.t)];
+    return `<div class="box"><div class="row" style="border-top:0"><span class="t">${esc(v.t)}</span>${usos.length?`<span class="src">Combina com: ${esc(usos.join(", "))}</span>`:""}</div>
+    <div class="acts"><a class="btn b1" target="_blank" rel="noopener" href="${v.u}">Assistir no jw.org</a></div></div>`}).join("");
+}
+function telaTx(){
+  const segs=[["obj","Quando dizem"],["rac","Raciocínios"],["con","Consolo"],["tex","Textos por tema"],["faq","Sobre nós"],["dout","Perguntas bíblicas"],["mor","Livro de Mórmon"],["vid","Vídeos"]];
+  let h=`<div class="seg">${segs.map(([k,l])=>`<button class="${sub===k?"on":""}" onclick="sub='${k}';render()">${l}</button>`).join("")}</div><div style="height:8px"></div>`;
+  let lista="";
+  if(q()&&sub!=="vid"){
+    lista=listaObj()+TOP.filter(bate).map(cardTop).join("")+FAQ.map((f,i)=>bate(f)?cardFaq(f,"f_"+i,"Sobre nós"):"").join("")+DOUT.map((f,i)=>bate(f)?cardFaq(f,"d_"+i,"Perguntas bíblicas"):"").join("");
+  }else if(sub==="obj")lista=listaObj();
+  else if(sub==="faq")lista=FAQ.map((f,i)=>cardFaq(f,"f_"+i,"Sobre nós")).join("")+`<p><a class="lnk" target="_blank" rel="noopener" href="https://www.jw.org/pt/testemunhas-de-jeova/perguntas-frequentes/">Todas as perguntas frequentes no jw.org</a></p>`;
+  else if(sub==="dout")lista=DOUT.map((f,i)=>cardFaq(f,"d_"+i,"Perguntas bíblicas")).join("");
+  else if(sub==="vid")lista=telaVideos();
+  else lista=TOP.filter(o=>o.g===sub).map(cardTop).join("");
+  return h+(lista||`<p class="empty">Nada encontrado.</p>`);
+}
+function telaFav(){
+  const itens=favs.map(id=>{
+    if(id.startsWith("p_")){const p=PRES.find(x=>x.id===id.slice(2));return p&&bate(p)?cardPres(p):""}
+    if(id.startsWith("t_")){const o=TOP.find(x=>x.id===id.slice(2));return o&&bate(o)?cardTop(o):""}
+    if(id.startsWith("f_")){const f=FAQ[id.slice(2)];return f&&bate(f)?cardFaq(f,id,"Sobre nós"):""}
+    if(id.startsWith("d_")){const f=DOUT[id.slice(2)];return f&&bate(f)?cardFaq(f,id,"Perguntas bíblicas"):""}
+    const o=OBJ.find(x=>x.id===id);return o&&bate(o)?cardObj(o):"";
+  }).join("");
+  return `<h2>Favoritos</h2>`+(itens||`<div class="panel">Abra qualquer cartão e toque em “Salvar nos favoritos” para guardá-lo aqui.</div>`);
+}
+function render(){
+  $("#app").innerHTML=({ap:telaAp,tx:telaTx,fav:telaFav})[aba]();
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===aba));
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{aba=b.dataset.tab;render();scrollTo(0,0)});
+$("#busca").oninput=render;
+render();
+</script>
+</body>
+</html>
